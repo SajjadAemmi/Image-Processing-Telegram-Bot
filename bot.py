@@ -7,7 +7,7 @@ from filters.image_to_pencil_sketch import *
 import config
 
 
-Token = os.environ["Tokan"]
+Token = os.environ["Token"]
 bot = telebot.TeleBot(Token)
 
 markup = types.ReplyKeyboardMarkup(row_width=4)
