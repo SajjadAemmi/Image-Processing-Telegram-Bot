@@ -1,2 +1,4 @@
 pyTelegramBotApi
 opencv-python-headless
+pillow
+qrcode

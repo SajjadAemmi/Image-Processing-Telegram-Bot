@@ -19,6 +19,12 @@ def image2pencilSketch(image_path):
     return image_result
 
 
+def image2gray(image_path):
+    image = cv2.imread(image_path)
+    image_result = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    return image_result
+
+
 if __name__ == "__main__":
     result = image2pencilSketch("input/rdj.png")
     cv2.imwrite("result.jpg", result)
