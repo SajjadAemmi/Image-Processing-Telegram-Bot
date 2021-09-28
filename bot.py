@@ -87,7 +87,7 @@ def send_message(message):
     global bot_state
     try:
         if bot_state == 'qrcode':
-            image_path = 'output/photo/qrcode.png'
+            image_path = 'output/photos/qrcode.png'
             img = qrcode.make(message.text)
             img.save(image_path)
 
