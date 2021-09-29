@@ -54,8 +54,9 @@ def send_pencil_sketch(message):
 @bot.message_handler(commands=['qrcode'])
 def send_qrcode(message):
     global bot_state
-    bot.send_message(message.chat.id, "Send me your text or url")
-    bot_state = 'qrcode'
+    msg = bot.send_message(message.chat.id, "Send me a text or url")
+    # bot_state = 'qrcode'
+    bot.register_next_step_handler(msg, process_qrcode_step)
 
 
 @bot.message_handler(content_types=['photo'])
@@ -86,16 +87,29 @@ def send_photo(message):
 def send_message(message):
     global bot_state
     try:
-        if bot_state == 'qrcode':
-            image_path = 'output/photos/qrcode.png'
-            img = qrcode.make(message.text)
-            img.save(image_path)
+        # if bot_state == 'qrcode':
+        #     image_path = 'output/photos/qrcode.png'
+        #     img = qrcode.make(message.text)
+        #     img.save(image_path)
 
-            photo = open(image_path, "rb")
-            bot.send_photo(message.chat.id, photo)
+        #     photo = open(image_path, "rb")
+        #     bot.send_photo(message.chat.id, photo)
+        pass
     
     except:
-        bot.send_message(message.chat.id, "Something went wrong")
+        bot.send_message(message.chat.id, "Something went wrong 😭")
+
+
+def process_qrcode_step(message):
+    try:
+        image_path = 'output/photos/qrcode.png'
+        img = qrcode.make(message.text)
+        img.save(image_path)
+
+        photo = open(image_path, "rb")
+        bot.send_photo(message.chat.id, photo)
+    except Exception as e:
+        bot.send_message(message.chat.id, "Something went wrong 😭")
 
 
 bot.polling()
