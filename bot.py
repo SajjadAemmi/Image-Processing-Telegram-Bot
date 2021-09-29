@@ -75,7 +75,6 @@ def send_photo(message):
     elif bot_state == 'gray':
         image_result = image2gray(image_path)
 
-
     image_path = os.path.join('output', file_info.file_path)
     cv2.imwrite(image_path, image_result)
 
