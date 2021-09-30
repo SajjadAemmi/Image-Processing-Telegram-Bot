@@ -94,6 +94,6 @@ def face_eyes_lips(image_path):
 
 
 if __name__ == "__main__":
-    result = face_eyes_lips("input/photos/file_0.jpg")
+    result = face_eyes_lips("input/photos/friends.jpg")
     cv2.imshow('output', result)
     cv2.waitKey(0)
