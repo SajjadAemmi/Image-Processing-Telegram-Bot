@@ -31,8 +31,8 @@ def landmarks2image(image, background, landmarks):
     mask = np.zeros(image.shape[:2], np.uint8)
     cv2.drawContours(mask, [landmarks], -1, (255,255,255), -1)
 
-    mask = cv2.GaussianBlur(mask,(49,49),0)
-    mask = cv2.multiply(cv2.subtract(mask, 150), 2)
+    mask = cv2.GaussianBlur(mask, (9, 9), 0)
+    mask = cv2.multiply(cv2.subtract(mask, 50), 2)
 
     r_min = np.min(landmarks[:,1])
     r_max = np.max(landmarks[:,1])
