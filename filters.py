@@ -29,7 +29,7 @@ def image2gray(image_path):
 
 def landmarks2image(image, background, landmarks):
     mask = np.zeros(image.shape[:2], np.uint8)
-    cv2.drawContours(mask, [landmarks], 0, (255,255,255), -1)
+    cv2.drawContours(mask, [landmarks], -1, (255,255,255), -1)
 
     r_min = np.min(landmarks[:,1])
     r_max = np.max(landmarks[:,1])

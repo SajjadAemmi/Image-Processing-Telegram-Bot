@@ -17,5 +17,3 @@ class LandmarksDetector:
             all_face_landmarks.append(face_landmarks)
 
         return np.array(all_face_landmarks, dtype=np.int32)
-
-
