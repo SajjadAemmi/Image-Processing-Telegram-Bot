@@ -51,6 +51,13 @@ def send_pencil_sketch(message):
     bot_state = 'besco'
 
 
+@bot.message_handler(commands=['cartoon'])
+def send_pencil_sketch(message):
+    global bot_state
+    bot.send_message(message.chat.id, "Send me an image")
+    bot_state = 'cartoon'
+
+
 @bot.message_handler(commands=['inverse'])
 def send_pencil_sketch(message):
     global bot_state
@@ -81,6 +88,9 @@ def send_photo(message):
     
     elif bot_state == 'besco':
         image_result = face_eyes_lips(image_path)
+    
+    elif bot_state == 'cartoon':
+        image_result = image2cartoon(image_path)
     
     elif bot_state == 'gray':
         image_result = image2gray(image_path)

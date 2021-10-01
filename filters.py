@@ -92,8 +92,17 @@ def face_eyes_lips(image_path):
     return result
     
 
+def image2cartoon(image_path):
+    image = cv2.imread(image_path)
+    image_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    image_gray_blur = cv2.medianBlur(image_gray, 5)
+    edges = cv2.adaptiveThreshold(image_gray_blur, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 7, 7)
+    image_color = cv2.bilateralFilter(image, 9, 250, 250)
+    image_result = cv2.bitwise_and(image_color, image_color, mask=edges)
+    return image_result
+
 
 if __name__ == "__main__":
-    result = face_eyes_lips("input/photos/friends.jpg")
+    result = image2cartoon("input/photos/file_0.jpg")
     cv2.imshow('output', result)
     cv2.waitKey(0)
