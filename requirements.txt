@@ -4,5 +4,4 @@ pyTelegramBotApi
 opencv-python-headless
 pillow
 qrcode
--i https://google-coral.github.io/py-repo/
-tflite_runtime
+tflite
