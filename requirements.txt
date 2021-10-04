@@ -4,3 +4,4 @@ pyTelegramBotApi
 opencv-python-headless
 pillow
 qrcode
+tflite_runtime
