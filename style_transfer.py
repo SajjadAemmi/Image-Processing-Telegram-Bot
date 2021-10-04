@@ -37,9 +37,6 @@ def resize_with_crop_or_pad(image, target_w, target_h):
 
     image = image[c1:c2, r1:r2]
 
-    cv2.imshow('title', image)
-    cv2.waitKey()
-
     # pad
     if rows < target_w:
         v_border = (target_w - rows) // 2
@@ -67,7 +64,6 @@ def preprocess_image(image, target_dim):
     new_w = int(shape[1] * scale)
 
     image = cv2.resize(image, (new_w, new_h))
-    print('shape', image.shape)
     # Central crop the image.
     image = resize_with_crop_or_pad(image, target_dim, target_dim)
     image = np.expand_dims(image, axis=0)
