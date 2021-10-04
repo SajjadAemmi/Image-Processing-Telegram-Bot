@@ -1,11 +1,13 @@
 import random
 import os
 import cv2
+import qrcode
 import telebot
 from telebot import types
 from filters import *
+from style_transfer import styleTransfer
 import config
-import qrcode
+
 
 
 Token = os.environ["Token"]
@@ -19,6 +21,7 @@ itembtn4 = types.KeyboardButton('/')
 markup.add(itembtn1, itembtn2, itembtn3, itembtn4)
 
 bot_state = None
+
 
 @bot.message_handler(commands=['start'])
 def send_start(message):
@@ -73,26 +76,57 @@ def send_qrcode(message):
     bot.register_next_step_handler(msg, process_qrcode_step)
 
 
-@bot.message_handler(content_types=['photo'])
-def send_photo(message):
+@bot.message_handler(commands=['style_transfer'])
+def send_style_transfer(message):
     global bot_state
+    photo = open('input/style_transfer.png', "rb")
+    bot.send_photo(message.chat.id, photo)
+    bot.send_message(message.chat.id, "Send me an image")
+    bot_state = 'style_transfer_1'
 
-    file_info = bot.get_file(message.photo[-1].file_id)
+
+def save_image(file_info, image_name=None):
     downloaded_file = bot.download_file(file_info.file_path)
-    image_path = os.path.join('input', file_info.file_path)
+
+    if image_name:
+        image_path = os.path.join('input', 'photos', image_name + '.jpg')
+    else:
+        image_path = os.path.join('input', file_info.file_path)
+
     with open(image_path, 'wb') as new_file:
         new_file.write(downloaded_file)
-        
-    if bot_state == 'pencil_sketch':
+
+    return image_path
+
+
+@bot.message_handler(content_types=['photo'])
+def send_photo(message):
+    global bot_state, content_image_path
+
+    file_info = bot.get_file(message.photo[-1].file_id)
+
+    if bot_state == 'style_transfer_1':
+        content_image_path = save_image(file_info, 'content_image')
+        bot_state = 'style_transfer_2'
+
+    elif bot_state == 'style_transfer_2':
+        style_image_path = save_image(file_info, 'style_image')
+        image_result = styleTransfer(content_image_path, style_image_path)
+
+    elif bot_state == 'pencil_sketch':
+        image_path = save_image(file_info)
         image_result = image2pencilSketch(image_path)
-    
+
     elif bot_state == 'besco':
+        image_path = save_image(file_info)
         image_result = face_eyes_lips(image_path)
-    
+
     elif bot_state == 'cartoon':
+        image_path = save_image(file_info)
         image_result = image2cartoon(image_path)
-    
+
     elif bot_state == 'gray':
+        image_path = save_image(file_info)
         image_result = image2gray(image_path)
 
     image_path = os.path.join('output', file_info.file_path)
@@ -114,7 +148,7 @@ def send_message(message):
         #     photo = open(image_path, "rb")
         #     bot.send_photo(message.chat.id, photo)
         pass
-    
+
     except:
         bot.send_message(message.chat.id, "Something went wrong 😭")
 

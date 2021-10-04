@@ -3,6 +3,7 @@ start_test = "Hi, welcome to image processing bot. \
 
 help_text = "I can help you create beautiful images. \
              \nYou can control me by sending these commands: \
+             \n/style_transfer - compose one image in the style of another image \
              \n/pencil_sketch - convert your image to pencil sketch \
              \n/besco - apply eyes and lips filter to your face image \
              \n/cartoon - apply cartoon filter \
