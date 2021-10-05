@@ -21,6 +21,7 @@ itembtn4 = types.KeyboardButton('/')
 markup.add(itembtn1, itembtn2, itembtn3, itembtn4)
 
 bot_state = None
+content_image_path = None
 
 
 @bot.message_handler(commands=['start'])
@@ -81,7 +82,7 @@ def send_style_transfer(message):
     global bot_state
     photo = open('input/style_transfer.png', "rb")
     bot.send_photo(message.chat.id, photo)
-    bot.send_message(message.chat.id, "Send me an image")
+    bot.send_message(message.chat.id, "Send me conent image")
     bot_state = 'style_transfer_1'
 
 
@@ -107,6 +108,7 @@ def send_photo(message):
 
     if bot_state == 'style_transfer_1':
         content_image_path = save_image(file_info, 'content_image')
+        bot.send_message(message.chat.id, "Send me style image")
         bot_state = 'style_transfer_2'
 
     elif bot_state == 'style_transfer_2':
