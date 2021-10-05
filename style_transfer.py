@@ -110,7 +110,7 @@ def styleTransfer(content_path, style_path):
     # Define content blending ratio between [0..1].
     # 0.0: 0% style extracts from content image.
     # 1.0: 100% style extracted from content image.
-    content_blending_ratio = 0.8
+    content_blending_ratio = 0.2
 
     # Blend the style bottleneck of style image and content image
     style_bottleneck_blended = content_blending_ratio * style_bottleneck_content + (1 - content_blending_ratio) * style_bottleneck
