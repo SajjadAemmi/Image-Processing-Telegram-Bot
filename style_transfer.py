@@ -124,7 +124,7 @@ def styleTransfer(content_path, style_path):
     result = stylized_image_blended
 
     if len(result.shape) > 3:
-        image = np.squeeze(result, axis=0)
+        result = np.squeeze(result, axis=0)
 
     result = result * 255
     result = result.astype(np.uint8)
