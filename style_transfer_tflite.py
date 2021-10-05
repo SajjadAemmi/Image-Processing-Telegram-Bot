@@ -1,6 +1,6 @@
-import numpy as np
 import cv2
-import tensorflow as tf
+import numpy as np
+import tflite_runtime.interpreter as tflite
 
 
 style_predict_path = 'weights/style_predict.tflite'
@@ -9,26 +9,65 @@ style_transform_path = 'weights/style_transform.tflite'
 
 # Function to load an image from a file, and add a batch dimension.
 def load_img(path_to_img):
-  img = tf.io.read_file(path_to_img)
-  img = tf.io.decode_image(img, channels=3)
-  img = tf.image.convert_image_dtype(img, tf.float32)
-  img = img[tf.newaxis, :]
+    img = cv2.imread(path_to_img)
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    img = img.astype(np.float32) / 255.0
+    return img
 
-  return img
+
+def resize_with_crop_or_pad(image, target_w, target_h):
+    cols, rows = image.shape[:2]
+    center_r = rows // 2
+    center_c = cols // 2
+
+    # crop
+    if rows > target_h:
+        r1 = center_r - target_h // 2
+        r2 = center_r + target_h // 2
+    else:
+        r1 = 0
+        r2 = rows
+
+    if cols > target_w:
+        c1 = center_c - target_w // 2
+        c2 = center_c + target_w // 2
+    else:
+        c1 = 0
+        c2 = cols
+
+    image = image[c1:c2, r1:r2]
+
+    # pad
+    if rows < target_w:
+        v_border = (target_w - rows) // 2
+    else:
+        v_border = 0
+
+    if cols < target_h:
+        h_border = (target_h - cols) // 2
+    else:
+        h_border = 0
+
+    white = [255, 255, 255]
+    image = cv2.copyMakeBorder(image, v_border, v_border, h_border, h_border, cv2.BORDER_CONSTANT, value=white)
+
+    return image
+
 
 # Function to pre-process by resizing an central cropping it.
 def preprocess_image(image, target_dim):
-  # Resize the image so that the shorter dimension becomes 256px.
-  shape = tf.cast(tf.shape(image)[1:-1], tf.float32)
-  short_dim = min(shape)
-  scale = target_dim / short_dim
-  new_shape = tf.cast(shape * scale, tf.int32)
-  image = tf.image.resize(image, new_shape)
+    shape = image.shape[:2]
+    short_dim = min(shape)
+    scale = target_dim / short_dim
 
-  # Central crop the image.
-  image = tf.image.resize_with_crop_or_pad(image, target_dim, target_dim)
+    new_h = int(shape[0] * scale)
+    new_w = int(shape[1] * scale)
 
-  return image
+    image = cv2.resize(image, (new_w, new_h))
+    # Central crop the image.
+    image = resize_with_crop_or_pad(image, target_dim, target_dim)
+    image = np.expand_dims(image, axis=0)
+    return image
 
 
 def imshow(image, title='output'):
@@ -46,37 +85,37 @@ def imshow(image, title='output'):
 
 # Function to run style prediction on preprocessed style image.
 def run_style_predict(preprocessed_style_image):
-  # Load the model.
-  interpreter = tf.lite.Interpreter(model_path=style_predict_path)
+    # Load the model.
+    interpreter = tflite.Interpreter(model_path=style_predict_path)
 
-  # Set model input.
-  interpreter.allocate_tensors()
-  input_details = interpreter.get_input_details()
-  interpreter.set_tensor(input_details[0]["index"], preprocessed_style_image)
+    # Set model input.
+    interpreter.allocate_tensors()
+    input_details = interpreter.get_input_details()
+    interpreter.set_tensor(input_details[0]["index"], preprocessed_style_image)
 
-  # Calculate style bottleneck.
-  interpreter.invoke()
-  style_bottleneck = interpreter.tensor(interpreter.get_output_details()[0]["index"])()
-  return style_bottleneck
+    # Calculate style bottleneck.
+    interpreter.invoke()
+    style_bottleneck = interpreter.tensor(interpreter.get_output_details()[0]["index"])()
+    return style_bottleneck
 
 
 # Run style transform on preprocessed style image
 def run_style_transform(style_bottleneck, preprocessed_content_image):
-  # Load the model.
-  interpreter = tf.lite.Interpreter(model_path=style_transform_path)
+    # Load the model.
+    interpreter = tflite.Interpreter(model_path=style_transform_path)
 
-  # Set model input.
-  input_details = interpreter.get_input_details()
-  interpreter.allocate_tensors()
+    # Set model input.
+    input_details = interpreter.get_input_details()
+    interpreter.allocate_tensors()
 
-  # Set model inputs.
-  interpreter.set_tensor(input_details[0]["index"], preprocessed_content_image)
-  interpreter.set_tensor(input_details[1]["index"], style_bottleneck)
-  interpreter.invoke()
+    # Set model inputs.
+    interpreter.set_tensor(input_details[0]["index"], preprocessed_content_image)
+    interpreter.set_tensor(input_details[1]["index"], style_bottleneck)
+    interpreter.invoke()
 
-  # Transform content image.
-  stylized_image = interpreter.tensor(interpreter.get_output_details()[0]["index"])()
-  return stylized_image
+    # Transform content image.
+    stylized_image = interpreter.tensor(interpreter.get_output_details()[0]["index"])()
+    return stylized_image
 
 
 def styleTransfer(content_path, style_path):
@@ -98,10 +137,10 @@ def styleTransfer(content_path, style_path):
     style_bottleneck = run_style_predict(preprocessed_style_image)
     print('Style Bottleneck Shape:', style_bottleneck.shape)
 
+    """### Style transform"""
     # Stylize the content image using the style bottleneck.
     stylized_image = run_style_transform(style_bottleneck, preprocessed_content_image)
 
-    # Visualize the output.
     # imshow(stylized_image, 'Stylized Image')
 
     # Calculate style bottleneck of the content image.
@@ -110,26 +149,26 @@ def styleTransfer(content_path, style_path):
     # Define content blending ratio between [0..1].
     # 0.0: 0% style extracts from content image.
     # 1.0: 100% style extracted from content image.
-    content_blending_ratio = 0.5 
+    content_blending_ratio = 0.5
 
     # Blend the style bottleneck of style image and content image
-    style_bottleneck_blended = content_blending_ratio * style_bottleneck_content + (1 - content_blending_ratio) * style_bottleneck
+    style_bottleneck_blended = content_blending_ratio * style_bottleneck_content + (
+                1 - content_blending_ratio) * style_bottleneck
 
     # Stylize the content image using the style bottleneck.
     stylized_image_blended = run_style_transform(style_bottleneck_blended, preprocessed_content_image)
 
-    # Visualize the output.
     # imshow(stylized_image_blended, 'Blended Stylized Image')
 
     result = stylized_image_blended
 
     if len(result.shape) > 3:
-        image = np.squeeze(result, axis=0)
+        result = np.squeeze(result, axis=0)
 
     result = result * 255
     result = result.astype(np.uint8)
-    result = cv2.cvtColor(result, cv2.COLOR_BGR2RGB)
 
+    result = cv2.cvtColor(result, cv2.COLOR_BGR2RGB)
     return result
 
 
@@ -138,6 +177,5 @@ if __name__ == "__main__":
     style_path = "input/styles/TheScream-EdvardMunch.jpg"
 
     image = styleTransfer(content_path, style_path)
-    cv2.imwrite('output/photos/result.jpg', image)
     cv2.imshow('output', image)
     cv2.waitKey()

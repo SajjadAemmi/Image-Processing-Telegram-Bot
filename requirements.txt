@@ -4,4 +4,4 @@ pyTelegramBotApi
 opencv-python-headless
 pillow
 qrcode
-tflite
+tensorflow-cpu
