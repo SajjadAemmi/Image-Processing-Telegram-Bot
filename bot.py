@@ -110,6 +110,7 @@ def send_photo(message):
         content_image_path = save_image(file_info, 'content_image')
         bot.send_message(message.chat.id, "Send me style image")
         bot_state = 'style_transfer_2'
+        return
 
     elif bot_state == 'style_transfer_2':
         style_image_path = save_image(file_info, 'style_image')
