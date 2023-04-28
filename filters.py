@@ -3,12 +3,12 @@ import cv2
 from landmarks_detector import LandmarksDetector
 
 
-def dodge(x,y):
-    return cv2.divide(x, 255-y, scale=256)
+def dodge(x, y):
+    return cv2.divide(x, 255 - y, scale=256)
 
 
 def burn(image, mask):
-    return 255 - cv2.divide(255-image, 255-mask, scale=256)
+    return 255 - cv2.divide(255 - image, 255 - mask, scale=256)
 
 
 def image2pencilSketch(image_path):
@@ -29,15 +29,15 @@ def image2gray(image_path):
 
 def landmarks2image(image, background, landmarks):
     mask = np.zeros(image.shape[:2], np.uint8)
-    cv2.drawContours(mask, [landmarks], -1, (255,255,255), -1)
+    cv2.drawContours(mask, [landmarks], -1, (255, 255, 255), -1)
 
     mask = cv2.GaussianBlur(mask, (9, 9), 0)
     mask = cv2.multiply(cv2.subtract(mask, 50), 2)
 
-    r_min = np.min(landmarks[:,1])
-    r_max = np.max(landmarks[:,1])
-    c_min = np.min(landmarks[:,0])
-    c_max = np.max(landmarks[:,0])
+    r_min = np.min(landmarks[:, 1])
+    r_max = np.max(landmarks[:, 1])
+    c_min = np.min(landmarks[:, 0])
+    c_max = np.max(landmarks[:, 0])
     r_center = (r_max + r_min) // 2
     c_center = (c_max + c_min) // 2
 
@@ -54,15 +54,13 @@ def landmarks2image(image, background, landmarks):
 
     mask_new = np.zeros(image.shape[:2], dtype=np.uint8)
     mask_new[lips_x_min:lips_x_min + lips_w, lips_y_min:lips_y_min + lips_h] = mask_lips
-    
+
     lips_new = np.zeros(image.shape, dtype=np.uint8)
     lips_new[lips_x_min:lips_x_min + lips_w, lips_y_min:lips_y_min + lips_h] = lips
-
-    # Convert uint8 to float
-    foreground = lips_new.astype(float)
+    foreground = lips_new.astype(float)  # Convert uint8 to float
 
     # Normalize the alpha mask to keep intensity between 0 and 1
-    alpha = mask_new.astype(float)/255
+    alpha = mask_new.astype(float) / 255
     alpha = cv2.merge((alpha, alpha, alpha))
 
     foreground = cv2.multiply(alpha, foreground)
@@ -75,22 +73,25 @@ def landmarks2image(image, background, landmarks):
 def face_eyes_lips(image_path):
     image = cv2.imread(image_path)
     background = image.astype(float)
-    landmarks_detector = LandmarksDetector()    
-    all_face_landmarks = landmarks_detector.get_landmarks(image_path)
+    landmarks_detector = LandmarksDetector()
+    all_face_landmarks = landmarks_detector.get_landmarks(image)
+    lips_landmarks_indexes = [52, 64, 63, 71, 67, 68, 61, 58, 59, 53, 56, 55]
+    left_eye_landmarks_indexes = [35, 41, 40, 42, 39, 37, 33, 36]
+    right_eye_landmarks_indexes = [89, 95, 94, 96, 93, 91, 87, 90]
 
     for face_landmarks in all_face_landmarks:
-        left_eye_landmarks = face_landmarks[36:42]
+        left_eye_landmarks = np.array([face_landmarks[i] for i in left_eye_landmarks_indexes])
         background = landmarks2image(image, background, left_eye_landmarks)
 
-        right_eye_landmarks = face_landmarks[42:48]
+        right_eye_landmarks = np.array([face_landmarks[i] for i in right_eye_landmarks_indexes])
         background = landmarks2image(image, background, right_eye_landmarks)
 
-        lips_landmarks = face_landmarks[48:68]
+        lips_landmarks = np.array([face_landmarks[i] for i in lips_landmarks_indexes])
         background = landmarks2image(image, background, lips_landmarks)
-        
+
     result = background.astype(np.uint8)
     return result
-    
+
 
 def image2cartoon(image_path):
     image = cv2.imread(image_path)
@@ -103,6 +104,10 @@ def image2cartoon(image_path):
 
 
 if __name__ == "__main__":
-    result = image2cartoon("input/photos/file_0.jpg")
+    image_path = "input/photos/file_0.jpg"
+    # result = image2cartoon(image_path)
+    # result = image2gray(image_path)
+    # result = image2pencilSketch(image_path)
+    result = face_eyes_lips(image_path)
     cv2.imshow('output', result)
     cv2.waitKey(0)

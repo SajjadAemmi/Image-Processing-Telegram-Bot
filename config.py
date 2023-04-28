@@ -1,3 +1,7 @@
+face_detection_conf_threshold = 0.88
+face_detection_weights_path = "weights/RFB-320.tflite"
+face_alignment_weights_path = "weights/coor_2d106.tflite"
+
 start_test = "Hi, welcome to image processing bot. \
               \nSend /help command to see list of available commands."
 

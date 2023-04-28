@@ -1,5 +1,3 @@
-cmake
-dlib
 pyTelegramBotApi
 opencv-python-headless
 pillow

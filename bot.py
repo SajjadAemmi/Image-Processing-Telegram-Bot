@@ -9,7 +9,6 @@ from style_transfer import styleTransfer
 import config
 
 
-
 Token = os.environ["Token"]
 bot = telebot.TeleBot(Token)
 
