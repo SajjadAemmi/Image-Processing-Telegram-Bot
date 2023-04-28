@@ -9,7 +9,7 @@ from style_transfer import styleTransfer
 import config
 
 
-Token = os.environ["Token"]
+Token = os.getenv("Token")
 bot = telebot.TeleBot(Token)
 
 markup = types.ReplyKeyboardMarkup(row_width=4)
