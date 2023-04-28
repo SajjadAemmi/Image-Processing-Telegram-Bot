@@ -1,4 +1,4 @@
-# __pycache__
-# .idea
-# .vscode
+__pycache__
+.idea
+.vscode
 .DS_Store
