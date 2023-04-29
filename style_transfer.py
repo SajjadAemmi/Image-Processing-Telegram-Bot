@@ -1,10 +1,7 @@
 import numpy as np
 import cv2
 import tensorflow as tf
-
-
-style_predict_path = 'weights/style_predict.tflite'
-style_transform_path = 'weights/style_transform.tflite'
+from config import style_predict_weights_path, style_transform_weights_path
 
 
 # Function to load an image from a file, and add a batch dimension.
@@ -47,7 +44,7 @@ def imshow(image, title='output'):
 # Function to run style prediction on preprocessed style image.
 def run_style_predict(preprocessed_style_image):
   # Load the model.
-  interpreter = tf.lite.Interpreter(model_path=style_predict_path)
+  interpreter = tf.lite.Interpreter(model_path=style_predict_weights_path)
 
   # Set model input.
   interpreter.allocate_tensors()
@@ -63,7 +60,7 @@ def run_style_predict(preprocessed_style_image):
 # Run style transform on preprocessed style image
 def run_style_transform(style_bottleneck, preprocessed_content_image):
   # Load the model.
-  interpreter = tf.lite.Interpreter(model_path=style_transform_path)
+  interpreter = tf.lite.Interpreter(model_path=style_transform_weights_path)
 
   # Set model input.
   input_details = interpreter.get_input_details()
