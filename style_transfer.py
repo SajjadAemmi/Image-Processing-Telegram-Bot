@@ -5,27 +5,26 @@ from config import style_predict_weights_path, style_transform_weights_path
 
 
 # Function to load an image from a file, and add a batch dimension.
-def load_img(path_to_img):
-  img = tf.io.read_file(path_to_img)
-  img = tf.io.decode_image(img, channels=3)
-  img = tf.image.convert_image_dtype(img, tf.float32)
-  img = img[tf.newaxis, :]
+def load_image(path_to_image):
+    image = tf.io.read_file(path_to_image)
+    image = tf.io.decode_image(image, channels=3)
+    image = tf.image.convert_image_dtype(image, tf.float32)
+    image = image[tf.newaxis, :]
+    return image
 
-  return img
 
 # Function to pre-process by resizing an central cropping it.
 def preprocess_image(image, target_dim):
-  # Resize the image so that the shorter dimension becomes 256px.
-  shape = tf.cast(tf.shape(image)[1:-1], tf.float32)
-  short_dim = min(shape)
-  scale = target_dim / short_dim
-  new_shape = tf.cast(shape * scale, tf.int32)
-  image = tf.image.resize(image, new_shape)
+    # Resize the image so that the shorter dimension becomes 256px.
+    shape = tf.cast(tf.shape(image)[1:-1], tf.float32)
+    short_dim = min(shape)
+    scale = target_dim / short_dim
+    new_shape = tf.cast(shape * scale, tf.int32)
+    image = tf.image.resize(image, new_shape)
 
-  # Central crop the image.
-  image = tf.image.resize_with_crop_or_pad(image, target_dim, target_dim)
-
-  return image
+    # Central crop the image.
+    image = tf.image.resize_with_crop_or_pad(image, target_dim, target_dim)
+    return image
 
 
 def imshow(image, title='output'):
@@ -43,43 +42,43 @@ def imshow(image, title='output'):
 
 # Function to run style prediction on preprocessed style image.
 def run_style_predict(preprocessed_style_image):
-  # Load the model.
-  interpreter = tf.lite.Interpreter(model_path=style_predict_weights_path)
+    # Load the model.
+    interpreter = tf.lite.Interpreter(model_path=style_predict_weights_path)
 
-  # Set model input.
-  interpreter.allocate_tensors()
-  input_details = interpreter.get_input_details()
-  interpreter.set_tensor(input_details[0]["index"], preprocessed_style_image)
+    # Set model input.
+    interpreter.allocate_tensors()
+    input_details = interpreter.get_input_details()
+    interpreter.set_tensor(input_details[0]["index"], preprocessed_style_image)
 
-  # Calculate style bottleneck.
-  interpreter.invoke()
-  style_bottleneck = interpreter.tensor(interpreter.get_output_details()[0]["index"])()
-  return style_bottleneck
+    # Calculate style bottleneck.
+    interpreter.invoke()
+    style_bottleneck = interpreter.tensor(interpreter.get_output_details()[0]["index"])()
+    return style_bottleneck
 
 
 # Run style transform on preprocessed style image
 def run_style_transform(style_bottleneck, preprocessed_content_image):
-  # Load the model.
-  interpreter = tf.lite.Interpreter(model_path=style_transform_weights_path)
+    # Load the model.
+    interpreter = tf.lite.Interpreter(model_path=style_transform_weights_path)
 
-  # Set model input.
-  input_details = interpreter.get_input_details()
-  interpreter.allocate_tensors()
+    # Set model input.
+    input_details = interpreter.get_input_details()
+    interpreter.allocate_tensors()
 
-  # Set model inputs.
-  interpreter.set_tensor(input_details[0]["index"], preprocessed_content_image)
-  interpreter.set_tensor(input_details[1]["index"], style_bottleneck)
-  interpreter.invoke()
+    # Set model inputs.
+    interpreter.set_tensor(input_details[0]["index"], preprocessed_content_image)
+    interpreter.set_tensor(input_details[1]["index"], style_bottleneck)
+    interpreter.invoke()
 
-  # Transform content image.
-  stylized_image = interpreter.tensor(interpreter.get_output_details()[0]["index"])()
-  return stylized_image
+    # Transform content image.
+    stylized_image = interpreter.tensor(interpreter.get_output_details()[0]["index"])()
+    return stylized_image
 
 
 def styleTransfer(content_path, style_path):
     # Load the input images.
-    content_image = load_img(content_path)
-    style_image = load_img(style_path)
+    content_image = load_image(content_path)
+    style_image = load_image(style_path)
 
     # Preprocess the input images.
     preprocessed_content_image = preprocess_image(content_image, 384)
@@ -95,12 +94,6 @@ def styleTransfer(content_path, style_path):
     style_bottleneck = run_style_predict(preprocessed_style_image)
     print('Style Bottleneck Shape:', style_bottleneck.shape)
 
-    # Stylize the content image using the style bottleneck.
-    # stylized_image = run_style_transform(style_bottleneck, preprocessed_content_image)
-
-    # Visualize the output.
-    # imshow(stylized_image, 'Stylized Image')
-
     # Calculate style bottleneck of the content image.
     style_bottleneck_content = run_style_predict(preprocess_image(content_image, 256))
 
@@ -110,7 +103,8 @@ def styleTransfer(content_path, style_path):
     content_blending_ratio = 0.2
 
     # Blend the style bottleneck of style image and content image
-    style_bottleneck_blended = content_blending_ratio * style_bottleneck_content + (1 - content_blending_ratio) * style_bottleneck
+    style_bottleneck_blended = content_blending_ratio * style_bottleneck_content + (
+                1 - content_blending_ratio) * style_bottleneck
 
     # Stylize the content image using the style bottleneck.
     stylized_image_blended = run_style_transform(style_bottleneck_blended, preprocessed_content_image)

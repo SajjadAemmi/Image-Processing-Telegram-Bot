@@ -8,7 +8,6 @@ from filters import *
 from style_transfer import styleTransfer
 import config
 
-
 Token = os.getenv("Token")
 bot = telebot.TeleBot(Token)
 
@@ -142,13 +141,6 @@ def send_photo(message):
 def send_message(message):
     global bot_state
     try:
-        # if bot_state == 'qrcode':
-        #     image_path = 'output/photos/qrcode.png'
-        #     img = qrcode.make(message.text)
-        #     img.save(image_path)
-
-        #     photo = open(image_path, "rb")
-        #     bot.send_photo(message.chat.id, photo)
         pass
 
     except:
