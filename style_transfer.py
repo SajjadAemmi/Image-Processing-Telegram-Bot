@@ -96,7 +96,7 @@ def styleTransfer(content_path, style_path):
     print('Style Bottleneck Shape:', style_bottleneck.shape)
 
     # Stylize the content image using the style bottleneck.
-    stylized_image = run_style_transform(style_bottleneck, preprocessed_content_image)
+    # stylized_image = run_style_transform(style_bottleneck, preprocessed_content_image)
 
     # Visualize the output.
     # imshow(stylized_image, 'Stylized Image')
@@ -126,6 +126,7 @@ def styleTransfer(content_path, style_path):
     result = result * 255
     result = result.astype(np.uint8)
     result = cv2.cvtColor(result, cv2.COLOR_BGR2RGB)
+    print("Style Transfer Done!")
 
     return result
 
