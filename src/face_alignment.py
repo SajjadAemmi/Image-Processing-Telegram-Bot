@@ -33,6 +33,10 @@ class FaceAlignment:
         M = self.estimate_norm(landmark, image_size)
         warped = cv2.warpAffine(img, M, (image_size, image_size), borderValue=0.0)
         return warped, M
+    
+    def preprocess(self, input_image):
+        output_image = cv2.cvtColor(input_image, cv2.COLOR_BGR2RGB)
+        return output_image
 
     def __call__(self, input_image, face_landmarks):
         output_image, M = self.norm_crop(input_image, face_landmarks, 112)
