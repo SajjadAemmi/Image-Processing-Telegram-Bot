@@ -1,6 +1,6 @@
 import numpy as np
 import cv2
-from landmarks_detector import LandmarksDetector
+from src.landmarks_detector import LandmarksDetector
 
 
 def dodge(x, y):
@@ -11,8 +11,7 @@ def burn(image, mask):
     return 255 - cv2.divide(255 - image, 255 - mask, scale=256)
 
 
-def image2pencilSketch(image_path):
-    image = cv2.imread(image_path)
+def image2pencilSketch(image):
     image_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     image_gray_inv = 255 - image_gray
     image_gray_inv_blur = cv2.GaussianBlur(image_gray_inv, (21, 21), sigmaX=0, sigmaY=0)
@@ -21,8 +20,7 @@ def image2pencilSketch(image_path):
     return image_result
 
 
-def image2gray(image_path):
-    image = cv2.imread(image_path)
+def image2gray(image):
     image_result = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     return image_result
 
