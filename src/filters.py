@@ -101,6 +101,24 @@ def image2cartoon(image_path):
     return image_result
 
 
+def who_knows_me_best(image, face_parts_detector):
+    embedding, aligned_image, left_eye_image, right_eye_image, nose_image, lips_image = face_parts_detector(image)
+
+    face_dataset = np.save('face_dataset.npy')
+
+    # pickup 3 nearest embeddings
+
+    face_embedding = [face['embedding'] for face in face_dataset]
+    distances = np.linalg.norm(face_embedding - embedding, axis=1)
+    nearest_faces_indices = distances.argsort()[:3]
+
+    for i in nearest_faces_indices:
+        face = face_dataset[i]
+        image_path = face['image_path']
+        image = cv2.imread(image_path)
+        embedding, aligned_image, left_eye_image, right_eye_image, nose_image, lips_image = face_parts_detector(image)
+
+
 if __name__ == "__main__":
     image_path = "input/photos/file_0.jpg"
     # result = image2cartoon(image_path)

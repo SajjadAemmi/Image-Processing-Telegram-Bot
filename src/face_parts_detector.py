@@ -57,7 +57,7 @@ class FacePartsDetector:
         transformed_landmark_2d_106 = np.squeeze(transformed_landmark_2d_106).astype(int)
         left_eye_image, right_eye_image, nose_image, lips_image = self.face_parts(aligned_image, transformed_landmark_2d_106)
 
-        return aligned_image, left_eye_image, right_eye_image, nose_image, lips_image
+        return embedding, aligned_image, left_eye_image, right_eye_image, nose_image, lips_image
 
 
 if __name__ == "__main__":
@@ -65,7 +65,7 @@ if __name__ == "__main__":
     image = cv2.imread(image_path)
 
     face_parts_detector = FacePartsDetector()
-    aligned_image, left_eye_image, right_eye_image, nose_image, lips_image = face_parts_detector(image)
+    embedding, aligned_image, left_eye_image, right_eye_image, nose_image, lips_image = face_parts_detector(image)
 
     cv2.imwrite('output/aligned_image.jpg', aligned_image)
     cv2.imwrite('output/left_eye_image.jpg', left_eye_image)
