@@ -104,10 +104,13 @@ def image2cartoon(image_path):
 def who_knows_me_best(image, face_parts_detector):
     embedding, aligned_image, left_eye_image, right_eye_image, nose_image, lips_image = face_parts_detector(image)
 
-    face_dataset = np.save('face_dataset.npy')
+    # cv2.imwrite('output/aligned_image.jpg', aligned_image)
+    # cv2.imwrite('output/left_eye_image.jpg', left_eye_image)
+    # cv2.imwrite('output/right_eye_image.jpg', right_eye_image)
+    # cv2.imwrite('output/nose_image.jpg', nose_image)
+    # cv2.imwrite('output/lips_image.jpg', lips_image)
 
-    # pickup 3 nearest embeddings
-
+    face_dataset = np.load('face_dataset.npy', allow_pickle=True)
     face_embedding = [face['embedding'] for face in face_dataset]
     distances = np.linalg.norm(face_embedding - embedding, axis=1)
     nearest_faces_indices = distances.argsort()[:3]
@@ -117,6 +120,12 @@ def who_knows_me_best(image, face_parts_detector):
         image_path = face['image_path']
         image = cv2.imread(image_path)
         embedding, aligned_image, left_eye_image, right_eye_image, nose_image, lips_image = face_parts_detector(image)
+
+        # cv2.imwrite(f'output/aligned_image_{i}.jpg', aligned_image)
+        # cv2.imwrite(f'output/left_eye_image_{i}.jpg', left_eye_image)
+        # cv2.imwrite(f'output/right_eye_image_{i}.jpg', right_eye_image)
+        # cv2.imwrite(f'output/nose_image_{i}.jpg', nose_image)
+        # cv2.imwrite(f'output/lips_image_{i}.jpg', lips_image)
 
 
 if __name__ == "__main__":
