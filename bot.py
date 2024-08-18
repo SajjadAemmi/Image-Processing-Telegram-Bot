@@ -1,10 +1,8 @@
-from math import e
-import random
 import os
+from io import BytesIO
 import cv2
 import numpy as np
 import qrcode
-from scipy.datasets import face
 import telebot
 from telebot import types
 from src import filters
@@ -116,22 +114,29 @@ def send_style_transfer(message):
     bot_state = 'style_transfer_1'
 
 
-@bot.message_handler(commands=['who_knows_me_best'])
-def who_knows_me_best(message):
+@bot.message_handler(commands=['find_my_face'])
+def find_my_face(message):
     bot.send_message(message.chat.id, "Send me your face image")
-    bot.register_next_step_handler(message, who_knows_me_best_next_step)
+    bot.register_next_step_handler(message, find_my_face_next_step)
 
 
 @bot.message_handler(content_types=['photo'])
-def who_knows_me_best_next_step(message):
+def find_my_face_next_step(message):
     if message.content_type == 'photo':
         image = message_photo_to_image(message)
-        image_result = filters.who_knows_me_best(image, face_parts_detector)
-        photo = image_to_message_photo(image_result)
-        if photo is not None:
-            bot.send_photo(message.chat.id, photo)
-        else:
-            bot.send_message(message.chat.id, "Something went wrong 😭")
+        image_results = filters.find_my_face(image, face_parts_detector)
+        media_group = []
+        for image in image_results:
+            # photo = numpy_to_bytes_io(image['nose_image'])
+            # types.InputMediaPhoto(open('path/to/image1.jpg', 'rb')),
+            # media_group.append(types.InputMediaPhoto(photo))
+            photo = image_to_message_photo(image['nose_image'])                
+            if photo is not None:
+                # bot.send_media_group(message.chat.id, media_group)
+                bot.send_photo(message.chat.id, photo)
+            else:
+                bot.send_message(message.chat.id, "Something went wrong 😭")
+                break
 
 
 def message_photo_to_image(message):
@@ -148,6 +153,12 @@ def image_to_message_photo(image):
         return buffer
     else:
         return None
+
+def numpy_to_bytes_io(image_np):
+    # Encode image as a JPEG file in memory
+    _, image_buffer = cv2.imencode('.jpg', image_np)
+    # Convert buffer to BytesIO object
+    return BytesIO(image_buffer.tobytes())
 
 
 @bot.message_handler(content_types=['photo'])

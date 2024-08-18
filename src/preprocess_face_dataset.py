@@ -33,5 +33,5 @@ def preprocess_face_dataset(dataset_path):
 
 
 if __name__ == "__main__":
-    dataset_path = "datasets/faces"
+    dataset_path = "../datasets/faces"
     preprocess_face_dataset(dataset_path)

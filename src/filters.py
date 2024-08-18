@@ -1,6 +1,7 @@
 import numpy as np
 import cv2
 from src.landmarks_detector import LandmarksDetector
+from src.face_parts_detector import FacePartsDetector
 
 
 def dodge(x, y):
@@ -101,8 +102,11 @@ def image2cartoon(image_path):
     return image_result
 
 
-def who_knows_me_best(image, face_parts_detector):
-    embedding, aligned_image, left_eye_image, right_eye_image, nose_image, lips_image = face_parts_detector(image)
+def find_my_face(image, face_parts_detector):
+    results = []
+
+    result = face_parts_detector(image)
+    results.append(result)
 
     # cv2.imwrite('output/aligned_image.jpg', aligned_image)
     # cv2.imwrite('output/left_eye_image.jpg', left_eye_image)
@@ -112,27 +116,33 @@ def who_knows_me_best(image, face_parts_detector):
 
     face_dataset = np.load('face_dataset.npy', allow_pickle=True)
     face_embedding = [face['embedding'] for face in face_dataset]
-    distances = np.linalg.norm(face_embedding - embedding, axis=1)
+    distances = np.linalg.norm(face_embedding - result["embedding"], axis=1)
     nearest_faces_indices = distances.argsort()[:3]
 
     for i in nearest_faces_indices:
         face = face_dataset[i]
         image_path = face['image_path']
         image = cv2.imread(image_path)
-        embedding, aligned_image, left_eye_image, right_eye_image, nose_image, lips_image = face_parts_detector(image)
+        result = face_parts_detector(image)
+        results.append(result)
 
-        # cv2.imwrite(f'output/aligned_image_{i}.jpg', aligned_image)
-        # cv2.imwrite(f'output/left_eye_image_{i}.jpg', left_eye_image)
-        # cv2.imwrite(f'output/right_eye_image_{i}.jpg', right_eye_image)
-        # cv2.imwrite(f'output/nose_image_{i}.jpg', nose_image)
-        # cv2.imwrite(f'output/lips_image_{i}.jpg', lips_image)
+        # cv2.imwrite(f'output/aligned_image_{i}.jpg', result["aligned_image"])
+        # cv2.imwrite(f'output/left_eye_image_{i}.jpg', result["left_eye_image"])
+        # cv2.imwrite(f'output/right_eye_image_{i}.jpg', result["right_eye_image"])
+        # cv2.imwrite(f'output/nose_image_{i}.jpg', result["nose_image"])
+        # cv2.imwrite(f'output/lips_image_{i}.jpg', result["lips_image"])
 
+    return results
 
 if __name__ == "__main__":
     image_path = "input/photos/file_0.jpg"
     # result = image2cartoon(image_path)
     # result = image2gray(image_path)
     # result = image2pencilSketch(image_path)
-    result = face_eyes_lips(image_path)
-    cv2.imshow('output', result)
-    cv2.waitKey(0)
+    # result = face_eyes_lips(image_path)
+    # cv2.imshow('output', result)
+    # cv2.waitKey(0)
+
+    image = cv2.imread(image_path)
+    face_parts_detector = FacePartsDetector()
+    find_my_face(image, face_parts_detector)

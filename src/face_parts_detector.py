@@ -5,9 +5,10 @@ from insightface.app import FaceAnalysis
 
 
 class FacePartsDetector:
-    """ Detects face parts (left eye, right eye, nose, lips) from an image. """
+    """Detects face parts (left eye, right eye, nose, lips) from an image."""
+
     def __init__(self) -> None:
-        self.model = FaceAnalysis(providers=['CPUExecutionProvider'])
+        self.model = FaceAnalysis(providers=["CPUExecutionProvider"])
         self.model.prepare(ctx_id=0, det_size=(640, 640))
         self.left_eye_landmarks_indices = [35, 41, 40, 42, 39, 37, 33, 36]
         self.right_eye_landmarks_indices = [89, 95, 94, 96, 93, 91, 87, 90]
@@ -15,7 +16,7 @@ class FacePartsDetector:
         self.lips_landmarks_indices = [52, 64, 63, 71, 67, 68, 61, 58, 59, 53, 56, 55]
 
     def crop_image_with_landmarks(self, image, landmarks):
-        """ Crop image with landmarks. """
+        """Crop image with landmarks."""
         width, height = image.shape[:2]
         r_min = np.min(landmarks[:, 1]) - height // 40
         r_max = np.max(landmarks[:, 1]) + height // 40
@@ -23,13 +24,17 @@ class FacePartsDetector:
         c_max = np.max(landmarks[:, 0]) + width // 40
         cropped_image = image[r_min:r_max, c_min:c_max]
         return cropped_image
-    
+
     def face_parts(self, image, face_landmarks):
-        """ Crop face parts from image. """
-        left_eye_landmarks = np.take(face_landmarks, self.left_eye_landmarks_indices, axis=0)
+        """Crop face parts from image."""
+        left_eye_landmarks = np.take(
+            face_landmarks, self.left_eye_landmarks_indices, axis=0
+        )
         left_eye_image = self.crop_image_with_landmarks(image, left_eye_landmarks)
 
-        right_eye_landmarks = np.take(face_landmarks, self.right_eye_landmarks_indices, axis=0)
+        right_eye_landmarks = np.take(
+            face_landmarks, self.right_eye_landmarks_indices, axis=0
+        )
         right_eye_image = self.crop_image_with_landmarks(image, right_eye_landmarks)
 
         nose_landmarks = np.take(face_landmarks, self.nose_landmarks_indices, axis=0)
@@ -51,24 +56,38 @@ class FacePartsDetector:
 
         face = faces[0]
         embedding = face["embedding"]
-        aligned_image, M = insightface.utils.face_align.norm_crop2(input_image, face["kps"], 112)
+        aligned_image, M = insightface.utils.face_align.norm_crop2(
+            input_image, face["kps"], 112
+        )
         landmark_2d_106 = face["landmark_2d_106"].reshape(1, 106, 2)
         transformed_landmark_2d_106 = cv2.transform(landmark_2d_106, M)
-        transformed_landmark_2d_106 = np.squeeze(transformed_landmark_2d_106).astype(int)
-        left_eye_image, right_eye_image, nose_image, lips_image = self.face_parts(aligned_image, transformed_landmark_2d_106)
+        transformed_landmark_2d_106 = np.squeeze(transformed_landmark_2d_106).astype(
+            int
+        )
+        left_eye_image, right_eye_image, nose_image, lips_image = self.face_parts(
+            aligned_image, transformed_landmark_2d_106
+        )
 
-        return embedding, aligned_image, left_eye_image, right_eye_image, nose_image, lips_image
+        result = {
+            "embedding": embedding,
+            "aligned_image": aligned_image,
+            "left_eye_image": left_eye_image,
+            "right_eye_image": right_eye_image,
+            "nose_image": nose_image,
+            "lips_image": lips_image,
+        }
+        return result
 
 
 if __name__ == "__main__":
-    image_path = "input/photos/IMG_4670.JPG"
+    image_path = "input/photos/file_0.jpg"
     image = cv2.imread(image_path)
 
     face_parts_detector = FacePartsDetector()
-    embedding, aligned_image, left_eye_image, right_eye_image, nose_image, lips_image = face_parts_detector(image)
+    result = face_parts_detector(image)
 
-    cv2.imwrite('output/aligned_image.jpg', aligned_image)
-    cv2.imwrite('output/left_eye_image.jpg', left_eye_image)
-    cv2.imwrite('output/right_eye_image.jpg', right_eye_image)
-    cv2.imwrite('output/nose_image.jpg', nose_image)
-    cv2.imwrite('output/lips_image.jpg', lips_image)
+    cv2.imwrite("output/aligned_image.jpg", result["aligned_image"])
+    cv2.imwrite("output/left_eye_image.jpg", result["left_eye_image"])
+    cv2.imwrite("output/right_eye_image.jpg", result["right_eye_image"])
+    cv2.imwrite("output/nose_image.jpg", result["nose_image"])
+    cv2.imwrite("output/lips_image.jpg", result["lips_image"])
