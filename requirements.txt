@@ -3,3 +3,4 @@ opencv-python-headless
 pillow
 qrcode
 tensorflow-cpu
+insightface
